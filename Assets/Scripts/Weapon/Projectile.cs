@@ -5,12 +5,13 @@ using UnityEngine;
 public class Projectile : Weapon
 {
     [SerializeField] private float force = 10f;
-    public Rigidbody rb;
-    public ProjectilePool pool;
+    [HideInInspector] public Rigidbody rb;
+    [HideInInspector] public ObjectPool pool;
 
-    private void Start()
+    private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        rb.AddRelativeForce(Vector3.forward * -1 * force);
     }
 
     private void FixedUpdate()
@@ -20,16 +21,30 @@ public class Projectile : Weapon
 
     public void ShootProjectile()
     {
+        canDamage = true;
+        if (rb.constraints == RigidbodyConstraints.FreezeAll) rb.constraints = RigidbodyConstraints.None;
+
         rb.AddRelativeForce(Vector3.forward * -1 * force);
-        Debug.Log("Shoot");
+    }
+
+    void Hit()
+    {
+        rb.constraints = RigidbodyConstraints.FreezeAll;
+
+        rb.velocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        pool.ReturnToPool(gameObject);
+        gameObject.SetActive(false);
     }
 
     public override void OnTriggerEnter(Collider other)
     {
         base.OnTriggerEnter(other);
-        rb.transform.position = other.transform.position;
-        rb.velocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
-        pool.ReturnToPool(gameObject);
+
+        if (other.CompareTag(targetTag) || other.CompareTag("Ground"))
+        {
+            Hit();
+        }
     }
+
 }

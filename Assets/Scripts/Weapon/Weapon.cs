@@ -2,17 +2,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// script base para todas as armas
 public class Weapon : MonoBehaviour
 {
     public float damageValue = 10f;
-
+    public bool canDamage = false;
+    public string targetTag;
+    
     public virtual void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Character"))
+        if (!canDamage) return;
+        if (other.CompareTag(targetTag))
         {
-			Character character = other.GetComponent<Character>();
-			character.life -= damageValue;
+            Character character = other.GetComponent<Character>();
+            character.TakeDamage(damageValue);
+            canDamage = false;
         }
     }
-
 }
